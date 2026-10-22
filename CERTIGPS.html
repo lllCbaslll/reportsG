@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Add-In</title>
+  <script>
+    geotab.addin.miAddInUnico = function (api, state) {
+      return {
+        // 1. initialize: Se ejecuta una sola vez al cargar el Add-In
+        initialize(api, state, callback) {
+          // OBLIGATORIO: Invocar callback() para señalar a MyGeotab que concluyó la inicialización
+          callback();
+        },
+
+        // 2. focus: Se invoca cada vez que el usuario visualiza la página o cambia filtros
+        focus(api, state) {
+          // Consultas a la API reutilizando el objeto 'api' pre-autenticado
+          api.call("Get", {
+            typeName: "Device",
+            propertySelector: { fields: ["id", "name"], isIncluded: true },
+            resultsLimit: 10
+          }, function (vehiculos) {
+            console.log("Vehículos cargados:", vehiculos);
+          });
+        },
+
+        // 3. blur: Se activa cuando el usuario navega hacia otra sección de MyGeotab
+        blur(api, state) {
+          // Limpieza de eventos o variables de memoria
+        }
+      };
+    };
+  </script>
+</head>
+<body>
+  <h1>Mi Add-In Funcional</h1>
+</body>
+</html>
