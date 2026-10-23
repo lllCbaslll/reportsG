@@ -1,0 +1,338 @@
+<style>
+.cgps{font-family:Roboto,Arial,sans-serif;font-size:13px;color:#2c3e50;padding:16px;max-width:1100px}
+.cgps h2{margin:0 0 4px;font-size:20px}.cgps h3{margin:18px 0 6px;font-size:15px}
+.cgps .cgps-muted{color:#7a8794;font-weight:400}
+.cgps .cgps-row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:10px 0}
+.cgps input[type=text],.cgps select{padding:6px 8px;border:1px solid #c5ccd3;border-radius:4px;font-size:13px}
+.cgps button{padding:8px 16px;border:1px solid #0078d3;background:#fff;color:#0078d3;border-radius:4px;font-size:13px;cursor:pointer}
+.cgps button.cgps-primary{background:#0078d3;color:#fff}
+.cgps button:hover{opacity:.88}
+.cgps .cgps-box{max-height:340px;overflow:auto;border:1px solid #d9dee3;border-radius:4px}
+.cgps table{border-collapse:collapse;width:100%}
+.cgps th,.cgps td{border:1px solid #d9dee3;padding:5px 8px;text-align:left}
+.cgps thead th{background:#eef2f6;position:sticky;top:0}
+.cgps .cgps-tbl{width:auto;min-width:560px;margin-bottom:8px}
+.cgps .cgps-tbl th,.cgps .cgps-tbl td{text-align:center}
+.cgps .cgps-msg{margin:8px 0;min-height:18px;color:#1f6e43}.cgps .cgps-err{color:#c0392b}
+</style>
+
+<div class="cgps" id="cgps-root">
+  <h2>Certificado GPS</h2>
+  <div class="cgps-muted">Seleccione los activos (placas) de la base de datos, visualice la tabla y genere el Anexo N°01 en Word.</div>
+  <div class="cgps-row">
+    <input type="text" id="cgps-filter" placeholder="Buscar placa, VIN o razón social…" size="38">
+    <button id="cgps-sel-vis" type="button">Seleccionar visibles</button>
+    <button id="cgps-sel-none" type="button">Limpiar selección</button>
+    <label><input type="checkbox" id="cgps-inactive"> Incluir activos inactivos</label>
+  </div>
+  <div class="cgps-row">
+    <label>Razón social desde:
+      <select id="cgps-mode">
+        <option value="auto">Automático (propiedad personalizada → comentario → grupo)</option>
+        <option value="comment">Comentario del activo</option>
+        <option value="group">Grupo del activo</option>
+        <option value="property">Propiedad personalizada…</option>
+      </select>
+    </label>
+    <input type="text" id="cgps-propname" placeholder="Nombre de la propiedad" style="display:none">
+    <label>Si no se detecta, usar: <input type="text" id="cgps-manual" placeholder="RAZON SOCIAL" size="30"></label>
+  </div>
+  <div class="cgps-box"><table>
+    <thead><tr><th style="width:34px"></th><th>Placa</th><th>VIN</th><th>Activo desde</th><th>Razón social</th></tr></thead>
+    <tbody id="cgps-listbody"><tr><td colspan="5" class="cgps-muted">Cargando…</td></tr></tbody>
+  </table></div>
+  <div class="cgps-muted" id="cgps-count" style="margin:6px 0"></div>
+  <div class="cgps-row">
+    <button id="cgps-btn-view" type="button" class="cgps-primary">Visualizar tabla</button>
+    <button id="cgps-btn-doc" type="button" class="cgps-primary">Generar Word</button>
+  </div>
+  <div id="cgps-msg" class="cgps-msg"></div>
+  <div id="cgps-preview"></div>
+</div>
+
+<script>
+geotab.addin["Certificado GPS"] = function () {
+  'use strict';
+
+  var api;
+  var all = [], groupsById = {}, propsById = {}, selected = {}, rawDevices = [];
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function fmtDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime()) || d.getFullYear() > 2040) return '';
+    return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
+  }
+  function xmlEsc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function htmlEsc(s) { return xmlEsc(s).replace(/'/g, '&#39;'); }
+  function safeFileName(s) {
+    return String(s).replace(/[\\\/:*?"<>|\r\n\t]/g, '').replace(/\s+/g, ' ').trim();
+  }
+  function docFileName(razon) { return 'CERTIFICADO GPS - ' + safeFileName(razon || 'SIN RAZON SOCIAL') + '.docx'; }
+
+  var CRC_TABLE = (function () {
+    var t = [], c, n, k;
+    for (n = 0; n < 256; n++) {
+      c = n;
+      for (k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+
+  function crc32(bytes) {
+    var c = 0xFFFFFFFF;
+    for (var i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function utf8(s) { return new TextEncoder().encode(s); }
+
+  function zipStore(files) {
+    var now = new Date();
+    var dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    var dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    var chunks = [], central = [], offset = 0;
+    function u16(v) { return [v & 255, (v >>> 8) & 255]; }
+    function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+    files.forEach(function (f) {
+      var name = utf8(f.name), data = utf8(f.data), crc = crc32(data);
+      var local = [].concat(u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(dosTime), u16(dosDate),
+        u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0));
+      chunks.push(new Uint8Array(local), name, data);
+      central.push([].concat(u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(dosTime), u16(dosDate),
+        u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0),
+        u32(0), u32(offset)), Array.prototype.slice.call(name));
+      offset += local.length + name.length + data.length;
+    });
+    var cdStart = offset, cdSize = 0;
+    central.forEach(function (c) { var u = new Uint8Array(c); chunks.push(u); cdSize += u.length; });
+    chunks.push(new Uint8Array([].concat(u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length),
+      u32(cdSize), u32(cdStart), u16(0))));
+    var total = chunks.reduce(function (a, c) { return a + c.length; }, 0);
+    var out = new Uint8Array(total), p = 0;
+    chunks.forEach(function (c) { out.set(c, p); p += c.length; });
+    return out;
+  }
+
+  var NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" ' +
+           'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  var COLS = [458, 2387, 2455, 1701];
+  var HEAD_RPR = '<w:rPr><w:rFonts w:ascii="Aptos Narrow" w:eastAsia="Times New Roman" w:hAnsi="Aptos Narrow" w:cs="Times New Roman"/><w:b/><w:bCs/><w:color w:val="000000"/><w:kern w:val="0"/></w:rPr>';
+  var BODY_RPR = '<w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Segoe UI"/><w:color w:val="000000"/></w:rPr>';
+
+  function cell(width, text, rpr, noWrap) {
+    return '<w:tc><w:tcPr><w:tcW w:w="' + width + '" w:type="dxa"/>' + (noWrap ? '<w:noWrap/>' : '') +
+      '<w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r>' + rpr +
+      '<w:t xml:space="preserve">' + xmlEsc(text) + '</w:t></w:r></w:p></w:tc>';
+  }
+  function row(vals, height, rpr) {
+    var h = '<w:trPr><w:trHeight w:val="' + height + '"/><w:jc w:val="center"/></w:trPr>';
+    return '<w:tr>' + h + vals.map(function (v, i) { return cell(COLS[i], v, rpr, i > 0); }).join('') + '</w:tr>';
+  }
+  function documentXml(rows) {
+    var body = '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:t>ANEXO N\u00B001</w:t></w:r></w:p>' +
+      '<w:tbl><w:tblPr><w:tblStyle w:val="Tablaconcuadrcula"/><w:tblW w:w="0" w:type="auto"/><w:jc w:val="center"/>' +
+      '<w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/></w:tblPr>' +
+      '<w:tblGrid>' + COLS.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join('') + '</w:tblGrid>' +
+      row(['N\u00BA', 'Placa', 'VIN', 'ACTIVO DESDE'], 350, HEAD_RPR) +
+      rows.map(function (r, i) { return row([String(i + 1), r.placa, r.vin, r.desde], 428, BODY_RPR); }).join('') +
+      '</w:tbl><w:p/>' +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1701" w:bottom="1417" w:left="1701" w:header="708" w:footer="708" w:gutter="0"/><w:cols w:space="708"/><w:docGrid w:linePitch="360"/></w:sectPr>';
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ' + NS + '><w:body>' + body + '</w:body></w:document>';
+  }
+  var STYLES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles ' + NS + '>' +
+    '<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Aptos" w:eastAsia="Aptos" w:hAnsi="Aptos" w:cs="Aptos"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="es-PE" w:eastAsia="en-US" w:bidi="ar-SA"/></w:rPr></w:rPrDefault>' +
+    '<w:pPrDefault><w:pPr><w:spacing w:after="160" w:line="259" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
+    '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>' +
+    '<w:style w:type="table" w:default="1" w:styleId="Tablanormal"><w:name w:val="Normal Table"/><w:uiPriority w:val="99"/><w:semiHidden/><w:unhideWhenUsed/><w:tblPr><w:tblInd w:w="0" w:type="dxa"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="108" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="108" w:type="dxa"/></w:tblCellMar></w:tblPr></w:style>' +
+    '<w:style w:type="table" w:styleId="Tablaconcuadrcula"><w:name w:val="Table Grid"/><w:basedOn w:val="Tablanormal"/><w:uiPriority w:val="39"/><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr><w:tblPr><w:tblBorders>' +
+    ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return '<w:' + s + ' w:val="single" w:sz="4" w:space="0" w:color="auto"/>'; }).join('') +
+    '</w:tblBorders></w:tblPr></w:style></w:styles>';
+  var CT_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+    '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
+    '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>';
+  var RELS_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>';
+  var DOC_RELS_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  function coreXml(razon) {
+    var iso = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+      '<dc:title>' + xmlEsc('CERTIFICADO GPS - ' + razon) + '</dc:title><dc:creator>MyGeotab</dc:creator>' +
+      '<dcterms:created xsi:type="dcterms:W3CDTF">' + iso + '</dcterms:created></cp:coreProperties>';
+  }
+  function buildDocx(rows, razon) {
+    return zipStore([
+      { name: '[Content_Types].xml', data: CT_XML },
+      { name: '_rels/.rels', data: RELS_XML },
+      { name: 'word/document.xml', data: documentXml(rows) },
+      { name: 'word/styles.xml', data: STYLES_XML },
+      { name: 'word/_rels/document.xml.rels', data: DOC_RELS_XML },
+      { name: 'docProps/core.xml', data: coreXml(razon || '') }
+    ]);
+  }
+
+  var RAZON_PROP = /raz[o\u00F3]n\s*social|empresa|cliente|company|propietario/i;
+  function isSystemGroup(id) { return /^Group/.test(id || ''); }
+
+  function makeResolver(groupsById, propsById, mode, propName) {
+    function fromProp(d, wanted) {
+      var list = d.customProperties || [];
+      for (var i = 0; i < list.length; i++) {
+        var p = propsById[list[i].property && list[i].property.id];
+        if (!p || !list[i].value) continue;
+        if (wanted ? p.name.toLowerCase() === wanted.toLowerCase() : RAZON_PROP.test(p.name)) return String(list[i].value).trim();
+      }
+      return '';
+    }
+    function fromGroup(d) {
+      var gs = d.groups || [];
+      for (var i = 0; i < gs.length; i++) {
+        var g = groupsById[gs[i].id];
+        if (g && g.name && !isSystemGroup(g.id)) return g.name.trim();
+      }
+      return '';
+    }
+    return function (d) {
+      if (mode === 'comment') return (d.comment || '').trim();
+      if (mode === 'group') return fromGroup(d);
+      if (mode === 'property') return fromProp(d, propName);
+      return fromProp(d, '') || (d.comment || '').trim() || fromGroup(d);
+    };
+  }
+
+  function toRow(d, resolver) {
+    return {
+      id: d.id,
+      placa: (d.name || d.licensePlate || '').trim(),
+      vin: (d.vehicleIdentificationNumber || '').trim(),
+      desde: fmtDate(d.activeFrom),
+      razon: resolver(d) || ''
+    };
+  }
+  function groupByRazon(rows) {
+    var map = {}, order = [];
+    rows.forEach(function (r) {
+      var k = r.razon || '';
+      if (!map[k]) { map[k] = []; order.push(k); }
+      map[k].push(r);
+    });
+    return order.map(function (k) { return { razon: k, rows: map[k] }; });
+  }
+
+  function callApi(api, method, params) {
+    return new Promise(function (ok, fail) { api.call(method, params, ok, fail); });
+  }
+  function download(name, bytes) {
+    var blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+
+  var $ = function (id) { return document.getElementById('cgps-' + id); };
+
+  function resolver() { return makeResolver(groupsById, propsById, $('mode').value, $('propname').value.trim()); }
+  function rebuildRows() {
+    var r = resolver();
+    all = rawDevices.map(function (d) { return toRow(d, r); })
+      .sort(function (a, b) { return a.placa.localeCompare(b.placa, 'es', { numeric: true }); });
+  }
+  function setMsg(t, err) { var m = $('msg'); m.textContent = t || ''; m.className = 'cgps-msg' + (err ? ' cgps-err' : ''); }
+
+  function renderList() {
+    var q = $('filter').value.trim().toLowerCase(), n = 0, html = '';
+    all.forEach(function (r) {
+      var hay = (r.placa + ' ' + r.vin + ' ' + r.razon).toLowerCase();
+      if (q && hay.indexOf(q) < 0) return;
+      n++;
+      html += '<tr><td><input type="checkbox" data-id="' + htmlEsc(r.id) + '"' + (selected[r.id] ? ' checked' : '') + '></td><td>' +
+        htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td><td>' + htmlEsc(r.razon) + '</td></tr>';
+    });
+    $('listbody').innerHTML = html || '<tr><td colspan="5" class="cgps-muted">Sin resultados</td></tr>';
+    $('count').textContent = n + ' de ' + all.length + ' activos \u00B7 ' + Object.keys(selected).filter(function (k) { return selected[k]; }).length + ' seleccionados';
+  }
+  function selectedRows() { return all.filter(function (r) { return selected[r.id]; }); }
+
+  function preview() {
+    var rows = selectedRows();
+    if (!rows.length) { setMsg('Seleccione al menos un activo.', true); $('preview').innerHTML = ''; return; }
+    setMsg('');
+    var html = '';
+    groupByRazon(rows).forEach(function (g) {
+      html += '<h3>' + htmlEsc(g.razon || '(Sin raz\u00F3n social)') + ' <span class="cgps-muted">\u2013 ' + g.rows.length + ' activo(s)</span></h3>' +
+        '<table class="cgps-tbl"><thead><tr><th>N\u00BA</th><th>Placa</th><th>VIN</th><th>ACTIVO DESDE</th></tr></thead><tbody>';
+      g.rows.forEach(function (r, i) { html += '<tr><td>' + (i + 1) + '</td><td>' + htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td></tr>'; });
+      html += '</tbody></table>';
+    });
+    $('preview').innerHTML = html;
+  }
+  function generate() {
+    var rows = selectedRows();
+    if (!rows.length) { setMsg('Seleccione al menos un activo.', true); return; }
+    var manual = $('manual').value.trim(), groups = groupByRazon(rows), i = 0;
+    setMsg('');
+    (function next() {
+      if (i >= groups.length) { setMsg('Se generaron ' + groups.length + ' documento(s) Word.'); return; }
+      var g = groups[i++], razon = g.razon || manual || 'SIN RAZON SOCIAL';
+      download(docFileName(razon), buildDocx(g.rows, razon));
+      setTimeout(next, 600);
+    })();
+  }
+  function load() {
+    setMsg('Cargando activos de la base de datos\u2026');
+    var inc = $('inactive').checked;
+    var devSearch = inc ? { fromDate: '1986-01-01T00:00:00.000Z' } : {};
+    return Promise.all([
+      callApi(api, 'Get', { typeName: 'Device', search: devSearch }),
+      callApi(api, 'Get', { typeName: 'Group' }).catch(function () { return []; }),
+      callApi(api, 'Get', { typeName: 'Property' }).catch(function () { return []; })
+    ]).then(function (res) {
+      rawDevices = res[0] || []; groupsById = {}; propsById = {};
+      (res[1] || []).forEach(function (g) { groupsById[g.id] = g; });
+      (res[2] || []).forEach(function (p) { propsById[p.id] = p; });
+      rebuildRows(); renderList(); setMsg(rawDevices.length + ' activos cargados.');
+    }).catch(function (e) { setMsg('No se pudieron cargar los activos: ' + (e && e.message ? e.message : e), true); });
+  }
+
+  return {
+    initialize: function (geotabApi, state, callback) {
+      api = geotabApi;
+      $('btn-view').addEventListener('click', preview);
+      $('btn-doc').addEventListener('click', generate);
+      $('filter').addEventListener('input', renderList);
+      $('inactive').addEventListener('change', load);
+      $('mode').addEventListener('change', function () { $('propname').style.display = this.value === 'property' ? '' : 'none'; rebuildRows(); renderList(); });
+      $('propname').addEventListener('change', function () { rebuildRows(); renderList(); });
+      $('listbody').addEventListener('change', function (e) { var id = e.target.getAttribute('data-id'); if (id) { selected[id] = e.target.checked; renderList(); } });
+      $('sel-vis').addEventListener('click', function () {
+        var q = $('filter').value.trim().toLowerCase();
+        all.forEach(function (r) { if (!q || (r.placa + ' ' + r.vin + ' ' + r.razon).toLowerCase().indexOf(q) >= 0) selected[r.id] = true; });
+        renderList();
+      });
+      $('sel-none').addEventListener('click', function () { selected = {}; renderList(); $('preview').innerHTML = ''; });
+
+      load().then(function () {
+        if (typeof callback === 'function') callback();
+      }).catch(function () {
+        if (typeof callback === 'function') callback();
+      });
+    },
+    focus: function (geotabApi, state) {
+      api = geotabApi;
+    },
+    blur: function (geotabApi, state) {}
+  };
+};
+
+geotab.addin.certificadoGps = geotab.addin["Certificado GPS"];
+</script>
