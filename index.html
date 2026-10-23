@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Certificado GPS</title>
 <style>
 .cgps{font-family:Roboto,Arial,sans-serif;font-size:13px;color:#2c3e50;padding:16px;max-width:1100px}
 .cgps h2{margin:0 0 4px;font-size:20px}.cgps h3{margin:18px 0 6px;font-size:15px}
@@ -15,31 +20,33 @@
 .cgps .cgps-tbl th,.cgps .cgps-tbl td{text-align:center}
 .cgps .cgps-msg{margin:8px 0;min-height:18px;color:#1f6e43}.cgps .cgps-err{color:#c0392b}
 </style>
+</head>
+<body>
 
 <div class="cgps" id="cgps-root">
   <h2>Certificado GPS</h2>
   <div class="cgps-muted">Seleccione los activos (placas) de la base de datos, visualice la tabla y genere el Anexo N°01 en Word.</div>
   <div class="cgps-row">
-    <input type="text" id="cgps-filter" placeholder="Buscar placa, VIN o razón social…" size="38">
+    <input type="text" id="cgps-filter" placeholder="Buscar placa, VIN o raz&oacute;n social&hellip;" size="38">
     <button id="cgps-sel-vis" type="button">Seleccionar visibles</button>
-    <button id="cgps-sel-none" type="button">Limpiar selección</button>
+    <button id="cgps-sel-none" type="button">Limpiar selecci&oacute;n</button>
     <label><input type="checkbox" id="cgps-inactive"> Incluir activos inactivos</label>
   </div>
   <div class="cgps-row">
-    <label>Razón social desde:
+    <label>Raz&oacute;n social desde:
       <select id="cgps-mode">
-        <option value="auto">Automático (propiedad personalizada → comentario → grupo)</option>
+        <option value="auto">Autom&aacute;tico (propiedad personalizada &rarr; comentario &rarr; grupo)</option>
         <option value="comment">Comentario del activo</option>
         <option value="group">Grupo del activo</option>
-        <option value="property">Propiedad personalizada…</option>
+        <option value="property">Propiedad personalizada&hellip;</option>
       </select>
     </label>
     <input type="text" id="cgps-propname" placeholder="Nombre de la propiedad" style="display:none">
     <label>Si no se detecta, usar: <input type="text" id="cgps-manual" placeholder="RAZON SOCIAL" size="30"></label>
   </div>
   <div class="cgps-box"><table>
-    <thead><tr><th style="width:34px"></th><th>Placa</th><th>VIN</th><th>Activo desde</th><th>Razón social</th></tr></thead>
-    <tbody id="cgps-listbody"><tr><td colspan="5" class="cgps-muted">Cargando…</td></tr></tbody>
+    <thead><tr><th style="width:34px"></th><th>Placa</th><th>VIN</th><th>Activo desde</th><th>Raz&oacute;n social</th></tr></thead>
+    <tbody id="cgps-listbody"><tr><td colspan="5" class="cgps-muted">Cargando&hellip;</td></tr></tbody>
   </table></div>
   <div class="cgps-muted" id="cgps-count" style="margin:6px 0"></div>
   <div class="cgps-row">
@@ -51,6 +58,9 @@
 </div>
 
 <script>
+/**
+ * Espacio de nombres e implementación obligatoria de los métodos del ciclo de vida
+ */
 geotab.addin["Certificado GPS"] = function () {
   'use strict';
 
@@ -157,182 +167,3 @@ geotab.addin["Certificado GPS"] = function () {
     '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>' +
     '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
     '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
-    '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>';
-  var RELS_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
-    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
-    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>';
-  var DOC_RELS_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
-    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
-  function coreXml(razon) {
-    var iso = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
-    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
-      '<dc:title>' + xmlEsc('CERTIFICADO GPS - ' + razon) + '</dc:title><dc:creator>MyGeotab</dc:creator>' +
-      '<dcterms:created xsi:type="dcterms:W3CDTF">' + iso + '</dcterms:created></cp:coreProperties>';
-  }
-  function buildDocx(rows, razon) {
-    return zipStore([
-      { name: '[Content_Types].xml', data: CT_XML },
-      { name: '_rels/.rels', data: RELS_XML },
-      { name: 'word/document.xml', data: documentXml(rows) },
-      { name: 'word/styles.xml', data: STYLES_XML },
-      { name: 'word/_rels/document.xml.rels', data: DOC_RELS_XML },
-      { name: 'docProps/core.xml', data: coreXml(razon || '') }
-    ]);
-  }
-
-  var RAZON_PROP = /raz[o\u00F3]n\s*social|empresa|cliente|company|propietario/i;
-  function isSystemGroup(id) { return /^Group/.test(id || ''); }
-
-  function makeResolver(groupsById, propsById, mode, propName) {
-    function fromProp(d, wanted) {
-      var list = d.customProperties || [];
-      for (var i = 0; i < list.length; i++) {
-        var p = propsById[list[i].property && list[i].property.id];
-        if (!p || !list[i].value) continue;
-        if (wanted ? p.name.toLowerCase() === wanted.toLowerCase() : RAZON_PROP.test(p.name)) return String(list[i].value).trim();
-      }
-      return '';
-    }
-    function fromGroup(d) {
-      var gs = d.groups || [];
-      for (var i = 0; i < gs.length; i++) {
-        var g = groupsById[gs[i].id];
-        if (g && g.name && !isSystemGroup(g.id)) return g.name.trim();
-      }
-      return '';
-    }
-    return function (d) {
-      if (mode === 'comment') return (d.comment || '').trim();
-      if (mode === 'group') return fromGroup(d);
-      if (mode === 'property') return fromProp(d, propName);
-      return fromProp(d, '') || (d.comment || '').trim() || fromGroup(d);
-    };
-  }
-
-  function toRow(d, resolver) {
-    return {
-      id: d.id,
-      placa: (d.name || d.licensePlate || '').trim(),
-      vin: (d.vehicleIdentificationNumber || '').trim(),
-      desde: fmtDate(d.activeFrom),
-      razon: resolver(d) || ''
-    };
-  }
-  function groupByRazon(rows) {
-    var map = {}, order = [];
-    rows.forEach(function (r) {
-      var k = r.razon || '';
-      if (!map[k]) { map[k] = []; order.push(k); }
-      map[k].push(r);
-    });
-    return order.map(function (k) { return { razon: k, rows: map[k] }; });
-  }
-
-  function callApi(api, method, params) {
-    return new Promise(function (ok, fail) { api.call(method, params, ok, fail); });
-  }
-  function download(name, bytes) {
-    var blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = name;
-    document.body.appendChild(a); a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-  }
-
-  var $ = function (id) { return document.getElementById('cgps-' + id); };
-
-  function resolver() { return makeResolver(groupsById, propsById, $('mode').value, $('propname').value.trim()); }
-  function rebuildRows() {
-    var r = resolver();
-    all = rawDevices.map(function (d) { return toRow(d, r); })
-      .sort(function (a, b) { return a.placa.localeCompare(b.placa, 'es', { numeric: true }); });
-  }
-  function setMsg(t, err) { var m = $('msg'); m.textContent = t || ''; m.className = 'cgps-msg' + (err ? ' cgps-err' : ''); }
-
-  function renderList() {
-    var q = $('filter').value.trim().toLowerCase(), n = 0, html = '';
-    all.forEach(function (r) {
-      var hay = (r.placa + ' ' + r.vin + ' ' + r.razon).toLowerCase();
-      if (q && hay.indexOf(q) < 0) return;
-      n++;
-      html += '<tr><td><input type="checkbox" data-id="' + htmlEsc(r.id) + '"' + (selected[r.id] ? ' checked' : '') + '></td><td>' +
-        htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td><td>' + htmlEsc(r.razon) + '</td></tr>';
-    });
-    $('listbody').innerHTML = html || '<tr><td colspan="5" class="cgps-muted">Sin resultados</td></tr>';
-    $('count').textContent = n + ' de ' + all.length + ' activos \u00B7 ' + Object.keys(selected).filter(function (k) { return selected[k]; }).length + ' seleccionados';
-  }
-  function selectedRows() { return all.filter(function (r) { return selected[r.id]; }); }
-
-  function preview() {
-    var rows = selectedRows();
-    if (!rows.length) { setMsg('Seleccione al menos un activo.', true); $('preview').innerHTML = ''; return; }
-    setMsg('');
-    var html = '';
-    groupByRazon(rows).forEach(function (g) {
-      html += '<h3>' + htmlEsc(g.razon || '(Sin raz\u00F3n social)') + ' <span class="cgps-muted">\u2013 ' + g.rows.length + ' activo(s)</span></h3>' +
-        '<table class="cgps-tbl"><thead><tr><th>N\u00BA</th><th>Placa</th><th>VIN</th><th>ACTIVO DESDE</th></tr></thead><tbody>';
-      g.rows.forEach(function (r, i) { html += '<tr><td>' + (i + 1) + '</td><td>' + htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td></tr>'; });
-      html += '</tbody></table>';
-    });
-    $('preview').innerHTML = html;
-  }
-  function generate() {
-    var rows = selectedRows();
-    if (!rows.length) { setMsg('Seleccione al menos un activo.', true); return; }
-    var manual = $('manual').value.trim(), groups = groupByRazon(rows), i = 0;
-    setMsg('');
-    (function next() {
-      if (i >= groups.length) { setMsg('Se generaron ' + groups.length + ' documento(s) Word.'); return; }
-      var g = groups[i++], razon = g.razon || manual || 'SIN RAZON SOCIAL';
-      download(docFileName(razon), buildDocx(g.rows, razon));
-      setTimeout(next, 600);
-    })();
-  }
-  function load() {
-    setMsg('Cargando activos de la base de datos\u2026');
-    var inc = $('inactive').checked;
-    var devSearch = inc ? { fromDate: '1986-01-01T00:00:00.000Z' } : {};
-    return Promise.all([
-      callApi(api, 'Get', { typeName: 'Device', search: devSearch }),
-      callApi(api, 'Get', { typeName: 'Group' }).catch(function () { return []; }),
-      callApi(api, 'Get', { typeName: 'Property' }).catch(function () { return []; })
-    ]).then(function (res) {
-      rawDevices = res[0] || []; groupsById = {}; propsById = {};
-      (res[1] || []).forEach(function (g) { groupsById[g.id] = g; });
-      (res[2] || []).forEach(function (p) { propsById[p.id] = p; });
-      rebuildRows(); renderList(); setMsg(rawDevices.length + ' activos cargados.');
-    }).catch(function (e) { setMsg('No se pudieron cargar los activos: ' + (e && e.message ? e.message : e), true); });
-  }
-
-  return {
-    initialize: function (geotabApi, state, callback) {
-      api = geotabApi;
-      $('btn-view').addEventListener('click', preview);
-      $('btn-doc').addEventListener('click', generate);
-      $('filter').addEventListener('input', renderList);
-      $('inactive').addEventListener('change', load);
-      $('mode').addEventListener('change', function () { $('propname').style.display = this.value === 'property' ? '' : 'none'; rebuildRows(); renderList(); });
-      $('propname').addEventListener('change', function () { rebuildRows(); renderList(); });
-      $('listbody').addEventListener('change', function (e) { var id = e.target.getAttribute('data-id'); if (id) { selected[id] = e.target.checked; renderList(); } });
-      $('sel-vis').addEventListener('click', function () {
-        var q = $('filter').value.trim().toLowerCase();
-        all.forEach(function (r) { if (!q || (r.placa + ' ' + r.vin + ' ' + r.razon).toLowerCase().indexOf(q) >= 0) selected[r.id] = true; });
-        renderList();
-      });
-      $('sel-none').addEventListener('click', function () { selected = {}; renderList(); $('preview').innerHTML = ''; });
-
-      load().then(function () {
-        if (typeof callback === 'function') callback();
-      }).catch(function () {
-        if (typeof callback === 'function') callback();
-      });
-    },
-    focus: function (geotabApi, state) {
-      api = geotabApi;
-    },
-    blur: function (geotabApi, state) {}
-  };
-};
-
-geotab.addin.certificadoGps = geotab.addin["Certificado GPS"];
-</script>
