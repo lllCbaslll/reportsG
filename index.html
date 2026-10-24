@@ -40,7 +40,19 @@
     </div>
   </div>
 
-  <!-- Controles y Filtros Compactos -->
+  <!-- Búsqueda y Selección Masiva -->
+  <div class="cgps-card">
+    <div style="font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #1b4e85;">SELECCIÓN MASIVA DE ACTIVOS</div>
+    <div style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap;">
+      <textarea id="cgps-bulk-input" class="cgps-textarea" placeholder="Pegue aquí la lista de placas, VINs o series (separados por salto de línea o coma)..." rows="3" style="flex: 1; min-width: 280px;"></textarea>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <button id="cgps-btn-bulk" type="button" class="cgps-btn cgps-btn-secondary">Filtrar y Seleccionar Masivo</button>
+        <button id="cgps-btn-bulk-clear" type="button" class="cgps-btn cgps-btn-outline">Limpiar Pegado</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles y Filtros Individuales -->
   <div class="cgps-card">
     <div class="cgps-controls-row">
       <input type="text" id="cgps-filter" class="cgps-input" placeholder="Buscar placa, VIN o razón social…" style="width: 260px;">
@@ -92,7 +104,7 @@
 </div>
 
 <script>
-// Inyección forzada de CSS con dimensiones compactas
+// Inyección forzada de CSS con dimensiones compactas y estilos para el textarea masivo
 (function injectStyles() {
   var css = `
     body {
@@ -118,7 +130,8 @@
     .cgps-kpi-title { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
     .cgps-kpi-value { font-size: 20px; font-weight: 700; color: #1e293b; }
     .cgps-controls-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .cgps-input, .cgps-select { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; outline: none; background-color: #ffffff; }
+    .cgps-input, .cgps-select, .cgps-textarea { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; outline: none; background-color: #ffffff; }
+    .cgps-textarea { font-family: monospace; resize: vertical; }
     .cgps-table-container { background-color: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1; overflow: hidden; }
     .cgps-table-scroll { max-height: 320px; overflow-y: auto; }
     .cgps-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -299,6 +312,7 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
       id: d.id,
       placa: (d.name || d.licensePlate || '').trim(),
       vin: (d.vehicleIdentificationNumber || '').trim(),
+      serialNumber: (d.serialNumber || '').trim(),
       desde: fmtDate(d.activeFrom),
       razon: resolver(d) || ''
     };
@@ -337,7 +351,7 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
   function renderList() {
     var q = $('filter').value.trim().toLowerCase(), n = 0, html = '';
     all.forEach(function (r) {
-      var hay = (r.placa + ' ' + r.vin + ' ' + r.razon).toLowerCase();
+      var hay = (r.placa + ' ' + r.vin + ' ' + r.serialNumber + ' ' + r.razon).toLowerCase();
       if (q && hay.indexOf(q) < 0) return;
       n++;
       html += '<tr><td style="text-align:center;"><input type="checkbox" data-id="' + htmlEsc(r.id) + '"' + (selected[r.id] ? ' checked' : '') + '></td><td>' +
@@ -349,6 +363,46 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
     document.getElementById('kpi-total').textContent = all.length;
     document.getElementById('kpi-selected').textContent = selCount;
     document.getElementById('kpi-visible').textContent = n;
+  }
+
+  function processBulkInput() {
+    var rawText = $('bulk-input').value.trim();
+    if (!rawText) {
+      setMsg('Por favor pegue una lista de unidades para filtrar.', true);
+      return;
+    }
+
+    // Separa por comas, saltos de línea (\n, \r), tabulaciones o espacios múltiples
+    var tokens = rawText.split(/[\n\r,;\t]+/).map(function (s) {
+      return s.trim().toLowerCase();
+    }).filter(function (s) { return s.length > 0; });
+
+    if (tokens.length === 0) {
+      setMsg('No se detectaron elementos válidos en el texto pegado.', true);
+      return;
+    }
+
+    selected = {}; // Reinicia selección previa
+    var matchedCount = 0;
+
+    all.forEach(function (r) {
+      var p = r.placa.toLowerCase();
+      var v = r.vin.toLowerCase();
+      var s = r.serialNumber.toLowerCase();
+
+      var isMatch = tokens.some(function (token) {
+        return p === token || v === token || s === token ||
+               (token.length >= 3 && (p.indexOf(token) >= 0 || v.indexOf(token) >= 0 || s.indexOf(token) >= 0));
+      });
+
+      if (isMatch) {
+        selected[r.id] = true;
+        matchedCount++;
+      }
+    });
+
+    renderList();
+    setMsg('Se procesaron ' + tokens.length + ' elementos ingresados. Se encontraron y seleccionaron ' + matchedCount + ' coincidencia(s).');
   }
 
   function selectedRows() { return all.filter(function (r) { return selected[r.id]; }); }
@@ -406,6 +460,13 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
   // Eventos
   $('btn-view').addEventListener('click', preview);
   $('btn-doc').addEventListener('click', generate);
+  $('btn-bulk').addEventListener('click', processBulkInput);
+  $('btn-bulk-clear').addEventListener('click', function () {
+    $('bulk-input').value = '';
+    selected = {};
+    renderList();
+    setMsg('Filtro masivo limpiado.');
+  });
   $('filter').addEventListener('input', renderList);
   $('inactive').addEventListener('change', load);
   $('mode').addEventListener('change', function () { $('propname').style.display = this.value === 'property' ? '' : 'none'; rebuildRows(); renderList(); });
@@ -413,7 +474,7 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
   $('listbody').addEventListener('change', function (e) { var id = e.target.getAttribute('data-id'); if (id) { selected[id] = e.target.checked; renderList(); } });
   $('sel-vis').addEventListener('click', function () {
     var q = $('filter').value.trim().toLowerCase();
-    all.forEach(function (r) { if (!q || (r.placa + ' ' + r.vin + ' ' + r.razon).toLowerCase().indexOf(q) >= 0) selected[r.id] = true; });
+    all.forEach(function (r) { if (!q || (r.placa + ' ' + r.vin + ' ' + r.serialNumber + ' ' + r.razon).toLowerCase().indexOf(q) >= 0) selected[r.id] = true; });
     renderList();
   });
   $('sel-none').addEventListener('click', function () { selected = {}; renderList(); $('preview').innerHTML = ''; $('preview').style.display = 'none'; });
