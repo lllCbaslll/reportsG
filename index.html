@@ -4,63 +4,259 @@
 <meta charset="utf-8">
 <title>Certificado GPS</title>
 <style>
-.cgps{font-family:Roboto,Arial,sans-serif;font-size:13px;color:#2c3e50;padding:16px;max-width:1100px}
-.cgps h2{margin:0 0 4px;font-size:20px}.cgps h3{margin:18px 0 6px;font-size:15px}
-.cgps .cgps-muted{color:#7a8794;font-weight:400}
-.cgps .cgps-row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:10px 0}
-.cgps input[type=text],.cgps select{padding:6px 8px;border:1px solid #c5ccd3;border-radius:4px;font-size:13px}
-.cgps button{padding:8px 16px;border:1px solid #0078d3;background:#fff;color:#0078d3;border-radius:4px;font-size:13px;cursor:pointer}
-.cgps button.cgps-primary{background:#0078d3;color:#fff}
-.cgps button:hover{opacity:.88}
-.cgps .cgps-box{max-height:340px;overflow:auto;border:1px solid #d9dee3;border-radius:4px}
-.cgps table{border-collapse:collapse;width:100%}
-.cgps th,.cgps td{border:1px solid #d9dee3;padding:5px 8px;text-align:left}
-.cgps thead th{background:#eef2f6;position:sticky;top:0}
-.cgps .cgps-tbl{width:auto;min-width:560px;margin-bottom:8px}
-.cgps .cgps-tbl th,.cgps .cgps-tbl td{text-align:center}
-.cgps .cgps-msg{margin:8px 0;min-height:18px;color:#1f6e43}.cgps .cgps-err{color:#c0392b}
+  :root {
+    --blue-1: #1a4971;
+    --blue-2: #2b6cb0;
+    --primary: #0078d3;
+    --bg-gray: #f4f7fa;
+    --border: #dcdfe6;
+    --text: #2c3e50;
+    --muted: #606266;
+  }
+
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-gray);
+    color: var(--text);
+  }
+
+  .cgps-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Header Hero Divemotor Style */
+  .cgps-hero {
+    background: linear-gradient(135deg, var(--blue-1), var(--blue-2));
+    color: #ffffff;
+    padding: 24px 28px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(26, 73, 113, 0.15);
+  }
+
+  .cgps-hero .tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-bottom: 6px;
+  }
+
+  .cgps-hero h1 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .cgps-hero p {
+    margin: 0;
+    font-size: 13.5px;
+    opacity: 0.9;
+    max-width: 800px;
+    line-height: 1.4;
+  }
+
+  /* Cards Sections */
+  .cgps-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 18px 22px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+
+  /* Controls Grid */
+  .cgps-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    align-items: center;
+  }
+
+  .cgps-input, .cgps-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .cgps-input:focus, .cgps-select:focus {
+    border-color: var(--primary);
+  }
+
+  .cgps-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--primary);
+    background: #ffffff;
+    color: var(--primary);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cgps-btn:hover {
+    background: #eef6fc;
+  }
+
+  .cgps-btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+  }
+
+  .cgps-btn-primary:hover {
+    background: #005a9e;
+    border-color: #005a9e;
+  }
+
+  .cgps-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* Table styling */
+  .cgps-box {
+    max-height: 380px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .cgps-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .cgps-table th {
+    background: #f8fafc;
+    color: var(--muted);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .cgps-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #edf2f7;
+  }
+
+  .cgps-table tbody tr:hover {
+    background-color: #f8fafc;
+  }
+
+  .cgps-tbl-preview {
+    width: auto;
+    min-width: 600px;
+    margin-bottom: 12px;
+  }
+
+  .cgps-tbl-preview th, .cgps-tbl-preview td {
+    text-align: center;
+  }
+
+  .cgps-msg {
+    min-height: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #276749;
+  }
+
+  .cgps-msg.cgps-err {
+    color: #c53030;
+  }
+
+  .cgps-muted {
+    color: var(--muted);
+    font-size: 12px;
+  }
 </style>
 </head>
 <body>
 
-<div class="cgps" id="cgps-root">
-  <h2>Certificado GPS</h2>
-  <div class="cgps-muted">Seleccione los activos (placas) de la base de datos, visualice la tabla y genere el Anexo N°01 en Word.</div>
-  <div class="cgps-row">
-    <input type="text" id="cgps-filter" placeholder="Buscar placa, VIN o razón social…" size="38">
-    <button id="cgps-sel-vis" type="button">Seleccionar visibles</button>
-    <button id="cgps-sel-none" type="button">Limpiar selección</button>
-    <label><input type="checkbox" id="cgps-inactive"> Incluir activos inactivos</label>
+<div class="cgps-container" id="cgps-root">
+  <!-- Header con estilo Divemotor -->
+  <div class="cgps-hero">
+    <div class="tag">NaviSAF · Control de Documentos</div>
+    <h1>Certificado GPS</h1>
+    <p>Seleccione los activos de la base de datos para visualizar la estructura consolidada e imprima de manera directa el Anexo N°01 en formato Word editable.</p>
   </div>
-  <div class="cgps-row">
-    <label>Razón social desde:
-      <select id="cgps-mode">
-        <option value="auto">Automático (propiedad personalizada → comentario → grupo)</option>
-        <option value="comment">Comentario del activo</option>
-        <option value="group">Grupo del activo</option>
-        <option value="property">Propiedad personalizada…</option>
-      </select>
-    </label>
-    <input type="text" id="cgps-propname" placeholder="Nombre de la propiedad" style="display:none">
-    <label>Si no se detecta, usar: <input type="text" id="cgps-manual" placeholder="RAZON SOCIAL" size="30"></label>
+
+  <!-- Tarjeta de Controles y Filtros -->
+  <div class="cgps-card">
+    <div class="cgps-controls">
+      <input type="text" id="cgps-filter" class="cgps-input" placeholder="Buscar placa, VIN o razón social…" style="width: 280px;">
+      <button id="cgps-sel-vis" type="button" class="cgps-btn">Seleccionar visibles</button>
+      <button id="cgps-sel-none" type="button" class="cgps-btn">Limpiar selección</button>
+      <label class="cgps-checkbox"><input type="checkbox" id="cgps-inactive"> Incluir activos inactivos</label>
+    </div>
+
+    <div class="cgps-controls" style="margin-top: 12px; border-top: 1px solid #edf2f7; padding-top: 12px;">
+      <label style="font-size: 13px;">Razón social desde:
+        <select id="cgps-mode" class="cgps-select">
+          <option value="auto">Automático (propiedad personalizada → comentario → grupo)</option>
+          <option value="comment">Comentario del activo</option>
+          <option value="group">Grupo del activo</option>
+          <option value="property">Propiedad personalizada…</option>
+        </select>
+      </label>
+      <input type="text" id="cgps-propname" class="cgps-input" placeholder="Nombre propiedad" style="display:none; width: 160px;">
+      <label style="font-size: 13px;">Si no se detecta: 
+        <input type="text" id="cgps-manual" class="cgps-input" placeholder="RAZON SOCIAL" style="width: 200px;">
+      </label>
+    </div>
   </div>
-  <div class="cgps-box"><table>
-    <thead><tr><th style="width:34px"></th><th>Placa</th><th>VIN</th><th>Activo desde</th><th>Razón social</th></tr></thead>
-    <tbody id="cgps-listbody"><tr><td colspan="5" class="cgps-muted">Cargando…</td></tr></tbody>
-  </table></div>
-  <div class="cgps-muted" id="cgps-count" style="margin:6px 0"></div>
-  <div class="cgps-row">
-    <button id="cgps-btn-view" type="button" class="cgps-primary">Visualizar tabla</button>
-    <button id="cgps-btn-doc" type="button" class="cgps-primary">Generar Word</button>
+
+  <!-- Tabla Principal de Selección -->
+  <div class="cgps-box">
+    <table class="cgps-table">
+      <thead>
+        <tr>
+          <th style="width: 38px; text-align: center;"></th>
+          <th>Placa</th>
+          <th>VIN</th>
+          <th>Activo desde</th>
+          <th>Razón social</th>
+        </tr>
+      </thead>
+      <tbody id="cgps-listbody">
+        <tr><td colspan="5" class="cgps-muted" style="text-align:center; padding: 20px;">Cargando activos…</td></tr>
+      </tbody>
+    </table>
   </div>
+
+  <!-- Contador y Botones de Acción -->
+  <div class="cgps-card" style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="cgps-muted" id="cgps-count">0 activos cargados</div>
+    <div style="display: flex; gap: 10px;">
+      <button id="cgps-btn-view" type="button" class="cgps-btn cgps-btn-primary">Visualizar tabla</button>
+      <button id="cgps-btn-doc" type="button" class="cgps-btn cgps-btn-primary">Generar Word</button>
+    </div>
+  </div>
+
   <div id="cgps-msg" class="cgps-msg"></div>
-  <div id="cgps-preview"></div>
+  <div id="cgps-preview" class="cgps-card" style="display: none;"></div>
 </div>
 
 <script>
-/**
- * Inicializador adaptado
- */
 window.geotab = window.geotab || {};
 window.geotab.addin = window.geotab.addin || {};
 
@@ -267,41 +463,53 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
       var hay = (r.placa + ' ' + r.vin + ' ' + r.razon).toLowerCase();
       if (q && hay.indexOf(q) < 0) return;
       n++;
-      html += '<tr><td><input type="checkbox" data-id="' + htmlEsc(r.id) + '"' + (selected[r.id] ? ' checked' : '') + '></td><td>' +
+      html += '<tr><td style="text-align:center;"><input type="checkbox" data-id="' + htmlEsc(r.id) + '"' + (selected[r.id] ? ' checked' : '') + '></td><td>' +
         htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td><td>' + htmlEsc(r.razon) + '</td></tr>';
     });
-    $('listbody').innerHTML = html || '<tr><td colspan="5" class="cgps-muted">Sin resultados</td></tr>';
-    $('count').textContent = n + ' de ' + all.length + ' activos \u00B7 ' + Object.keys(selected).filter(function (k) { return selected[k]; }).length + ' seleccionados';
+    $('listbody').innerHTML = html || '<tr><td colspan="5" class="cgps-muted" style="text-align:center; padding: 15px;">Sin resultados</td></tr>';
+    
+    var selCount = Object.keys(selected).filter(function (k) { return selected[k]; }).length;
+    $('count').textContent = n + ' de ' + all.length + ' activos disponibles · ' + selCount + ' seleccionado(s)';
   }
+
   function selectedRows() { return all.filter(function (r) { return selected[r.id]; }); }
 
   function preview() {
     var rows = selectedRows();
-    if (!rows.length) { setMsg('Seleccione al menos un activo.', true); $('preview').innerHTML = ''; return; }
+    var prevContainer = $('preview');
+    if (!rows.length) { 
+      setMsg('Seleccione al menos un activo.', true); 
+      prevContainer.style.display = 'none'; 
+      prevContainer.innerHTML = ''; 
+      return; 
+    }
     setMsg('');
-    var html = '';
+    var html = '<h3 style="margin-top:0;">Vista previa de tabla</h3>';
     groupByRazon(rows).forEach(function (g) {
-      html += '<h3>' + htmlEsc(g.razon || '(Sin raz\u00F3n social)') + ' <span class="cgps-muted">\u2013 ' + g.rows.length + ' activo(s)</span></h3>' +
-        '<table class="cgps-tbl"><thead><tr><th>N\u00BA</th><th>Placa</th><th>VIN</th><th>ACTIVO DESDE</th></tr></thead><tbody>';
+      html += '<h4 style="margin:12px 0 6px;">' + htmlEsc(g.razon || '(Sin razón social)') + ' <span class="cgps-muted">– ' + g.rows.length + ' activo(s)</span></h4>' +
+        '<table class="cgps-table cgps-tbl-preview"><thead><tr><th>Nº</th><th>Placa</th><th>VIN</th><th>ACTIVO DESDE</th></tr></thead><tbody>';
       g.rows.forEach(function (r, i) { html += '<tr><td>' + (i + 1) + '</td><td>' + htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td></tr>'; });
       html += '</tbody></table>';
     });
-    $('preview').innerHTML = html;
+    prevContainer.innerHTML = html;
+    prevContainer.style.display = 'block';
   }
+
   function generate() {
     var rows = selectedRows();
     if (!rows.length) { setMsg('Seleccione al menos un activo.', true); return; }
     var manual = $('manual').value.trim(), groups = groupByRazon(rows), i = 0;
     setMsg('');
     (function next() {
-      if (i >= groups.length) { setMsg('Se generaron ' + groups.length + ' documento(s) Word.'); return; }
+      if (i >= groups.length) { setMsg('Se generaron ' + groups.length + ' documento(s) Word correctamente.'); return; }
       var g = groups[i++], razon = g.razon || manual || 'SIN RAZON SOCIAL';
       download(docFileName(razon), buildDocx(g.rows, razon));
       setTimeout(next, 600);
     })();
   }
+
   function load() {
-    setMsg('Cargando activos de la base de datos\u2026');
+    setMsg('Cargando activos de la base de datos…');
     var inc = $('inactive').checked;
     var devSearch = inc ? { fromDate: '1986-01-01T00:00:00.000Z' } : {};
     return Promise.all([
@@ -316,7 +524,7 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
     }).catch(function (e) { setMsg('No se pudieron cargar los activos: ' + (e && e.message ? e.message : e), true); });
   }
 
-  // Método de inicialización
+  // Inicialización de eventos
   $('btn-view').addEventListener('click', preview);
   $('btn-doc').addEventListener('click', generate);
   $('filter').addEventListener('input', renderList);
@@ -329,7 +537,7 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
     all.forEach(function (r) { if (!q || (r.placa + ' ' + r.vin + ' ' + r.razon).toLowerCase().indexOf(q) >= 0) selected[r.id] = true; });
     renderList();
   });
-  $('sel-none').addEventListener('click', function () { selected = {}; renderList(); $('preview').innerHTML = ''; });
+  $('sel-none').addEventListener('click', function () { selected = {}; renderList(); $('preview').innerHTML = ''; $('preview').style.display = 'none'; });
 
   load().then(function () {
     if (typeof callback === 'function') callback();
