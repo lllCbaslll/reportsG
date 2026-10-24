@@ -7,24 +7,24 @@
 <body>
 
 <div class="cgps-wrapper" id="cgps-root">
-  <!-- Banner Superior Divemotor -->
+  <!-- Banner Superior Compacto -->
   <div class="cgps-hero">
     <div>
       <div class="cgps-hero-tag">NAVISAF · CONTROL DE DOCUMENTOS</div>
       <h1>Certificado GPS</h1>
-      <p>Seleccione los activos de la base de datos para visualizar la estructura consolidada e imprima el Anexo N°01 formal en Word.</p>
+      <p>Seleccione los activos de la base de datos para visualizar la estructura e imprima el Anexo N°01 formal en Word.</p>
       <div class="cgps-badges">
         <span>Base actual: <strong>divemotor</strong></span>
         <span class="cgps-badge">Módulo Activo</span>
       </div>
     </div>
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 8px;">
       <button id="cgps-btn-doc" type="button" class="cgps-btn cgps-btn-white">Generar Word</button>
       <button id="cgps-btn-view" type="button" class="cgps-btn cgps-btn-secondary">Visualizar Tabla</button>
     </div>
   </div>
 
-  <!-- Métricas Rápidas / KPIs -->
+  <!-- Métricas Rápidas / KPIs Compactos -->
   <div class="cgps-kpi-grid">
     <div class="cgps-card">
       <div class="cgps-kpi-title">Unidades Cargadas</div>
@@ -40,40 +40,40 @@
     </div>
   </div>
 
-  <!-- Controles y Filtros -->
+  <!-- Controles y Filtros Compactos -->
   <div class="cgps-card">
     <div class="cgps-controls-row">
-      <input type="text" id="cgps-filter" class="cgps-input" placeholder="Buscar placa, VIN o razón social…" style="width: 320px;">
+      <input type="text" id="cgps-filter" class="cgps-input" placeholder="Buscar placa, VIN o razón social…" style="width: 260px;">
       <button id="cgps-sel-vis" type="button" class="cgps-btn cgps-btn-outline">Seleccionar visibles</button>
       <button id="cgps-sel-none" type="button" class="cgps-btn cgps-btn-outline">Limpiar selección</button>
-      <label style="font-size: 13px; cursor: pointer;">
+      <label style="font-size: 12px; cursor: pointer;">
         <input type="checkbox" id="cgps-inactive"> Incluir activos inactivos
       </label>
     </div>
 
-    <div class="cgps-controls-row" style="margin-top: 14px; border-top: 1px solid #cbd5e1; padding-top: 14px;">
-      <label style="font-size: 13px; font-weight: 600;">Razón social desde:
-        <select id="cgps-mode" class="cgps-select" style="margin-left: 6px;">
+    <div class="cgps-controls-row" style="margin-top: 10px; border-top: 1px solid #cbd5e1; padding-top: 10px;">
+      <label style="font-size: 12px; font-weight: 600;">Razón social desde:
+        <select id="cgps-mode" class="cgps-select" style="margin-left: 4px;">
           <option value="auto">Automático (propiedad personalizada → comentario → grupo)</option>
           <option value="comment">Comentario del activo</option>
           <option value="group">Grupo del activo</option>
           <option value="property">Propiedad personalizada…</option>
         </select>
       </label>
-      <input type="text" id="cgps-propname" class="cgps-input" placeholder="Nombre propiedad" style="display:none; width: 160px;">
-      <label style="font-size: 13px; margin-left: 10px;">Si no se detecta: 
-        <input type="text" id="cgps-manual" class="cgps-input" placeholder="RAZON SOCIAL" style="width: 220px; margin-left: 4px;">
+      <input type="text" id="cgps-propname" class="cgps-input" placeholder="Nombre propiedad" style="display:none; width: 140px;">
+      <label style="font-size: 12px; margin-left: 8px;">Si no se detecta: 
+        <input type="text" id="cgps-manual" class="cgps-input" placeholder="RAZON SOCIAL" style="width: 180px; margin-left: 4px;">
       </label>
     </div>
   </div>
 
-  <!-- Tabla de Resultados -->
+  <!-- Tabla de Resultados Compacta -->
   <div class="cgps-table-container">
     <div class="cgps-table-scroll">
       <table class="cgps-table">
         <thead>
           <tr>
-            <th style="width: 40px; text-align: center;"></th>
+            <th style="width: 36px; text-align: center;"></th>
             <th>Placa</th>
             <th>VIN</th>
             <th>Activo Desde</th>
@@ -81,7 +81,7 @@
           </tr>
         </thead>
         <tbody id="cgps-listbody">
-          <tr><td colspan="5" style="text-align:center; padding: 24px; color: #64748b;">Cargando activos…</td></tr>
+          <tr><td colspan="5" style="text-align:center; padding: 16px; color: #64748b;">Cargando activos…</td></tr>
         </tbody>
       </table>
     </div>
@@ -92,49 +92,40 @@
 </div>
 
 <script>
-// Inyección forzada de CSS
+// Inyección forzada de CSS con dimensiones compactas
 (function injectStyles() {
   var css = `
-    :root {
-      --dive-blue: #1b4e85;
-      --dive-blue-btn: #4277a8;
-      --bg-gray: #f4f7fc;
-      --card-bg: #ffffff;
-      --border-color: #cbd5e1;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-    }
     body {
       margin: 0 !important;
-      padding: 20px !important;
+      padding: 10px !important;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
       background-color: #f4f7fc !important;
       color: #1e293b !important;
     }
-    .cgps-wrapper { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
-    .cgps-hero { background-color: #1b4e85 !important; color: #ffffff !important; padding: 24px 30px; border-radius: 12px; display: flex; justify-content: space-between; align-items: flex-start; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08); }
-    .cgps-hero-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; opacity: 0.85; margin-bottom: 6px; }
-    .cgps-hero h1 { margin: 0 0 8px 0; font-size: 26px; font-weight: 700; color: #ffffff !important; }
-    .cgps-hero p { margin: 0 0 16px 0; font-size: 13px; opacity: 0.9; line-height: 1.4; color: #ffffff !important; }
-    .cgps-badges { display: flex; align-items: center; gap: 10px; font-size: 12px; }
-    .cgps-badge { background-color: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
-    .cgps-btn { padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .cgps-wrapper { width: 100% !important; max-width: 100% !important; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    .cgps-hero { background-color: #1b4e85 !important; color: #ffffff !important; padding: 14px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    .cgps-hero-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; opacity: 0.85; margin-bottom: 2px; }
+    .cgps-hero h1 { margin: 0 0 4px 0; font-size: 20px; font-weight: 700; color: #ffffff !important; }
+    .cgps-hero p { margin: 0 0 8px 0; font-size: 12px; opacity: 0.9; line-height: 1.3; color: #ffffff !important; }
+    .cgps-badges { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+    .cgps-badge { background-color: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .cgps-btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
     .cgps-btn-white { background-color: #ffffff !important; color: #1b4e85 !important; }
     .cgps-btn-secondary { background-color: #4277a8 !important; color: #ffffff !important; }
     .cgps-btn-outline { background-color: #ffffff; color: #1b4e85; border: 1px solid #1b4e85; }
-    .cgps-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .cgps-card { background: #ffffff !important; border-radius: 10px; padding: 18px 20px; border: 1px solid #cbd5e1; }
-    .cgps-kpi-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .cgps-kpi-value { font-size: 28px; font-weight: 700; color: #1e293b; }
-    .cgps-controls-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .cgps-input, .cgps-select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; background-color: #ffffff; }
-    .cgps-table-container { background-color: #ffffff; border-radius: 10px; border: 1px solid #cbd5e1; overflow: hidden; }
-    .cgps-table-scroll { max-height: 420px; overflow-y: auto; }
-    .cgps-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .cgps-table th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 1px solid #cbd5e1; position: sticky; top: 0; z-index: 2; }
-    .cgps-table td { padding: 10px 16px; border-bottom: 1px solid #e2e8f0; color: #1e293b; }
+    .cgps-kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .cgps-card { background: #ffffff !important; border-radius: 8px; padding: 10px 14px; border: 1px solid #cbd5e1; }
+    .cgps-kpi-title { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .cgps-kpi-value { font-size: 20px; font-weight: 700; color: #1e293b; }
+    .cgps-controls-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .cgps-input, .cgps-select { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; outline: none; background-color: #ffffff; }
+    .cgps-table-container { background-color: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1; overflow: hidden; }
+    .cgps-table-scroll { max-height: 320px; overflow-y: auto; }
+    .cgps-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .cgps-table th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-align: left; padding: 8px 12px; border-bottom: 1px solid #cbd5e1; position: sticky; top: 0; z-index: 2; }
+    .cgps-table td { padding: 6px 12px; border-bottom: 1px solid #e2e8f0; color: #1e293b; }
     .cgps-table tbody tr:hover { background-color: #f1f5f9; }
-    .cgps-msg { min-height: 20px; font-size: 13px; font-weight: 600; color: #15803d; }
+    .cgps-msg { min-height: 18px; font-size: 12px; font-weight: 600; color: #15803d; }
     .cgps-msg.cgps-err { color: #b91c1c; }
   `;
   var styleElem = document.createElement('style');
@@ -352,7 +343,7 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
       html += '<tr><td style="text-align:center;"><input type="checkbox" data-id="' + htmlEsc(r.id) + '"' + (selected[r.id] ? ' checked' : '') + '></td><td>' +
         htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td><td>' + htmlEsc(r.razon) + '</td></tr>';
     });
-    $('listbody').innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">Sin resultados</td></tr>';
+    $('listbody').innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding: 14px; color: #64748b;">Sin resultados</td></tr>';
     
     var selCount = Object.keys(selected).filter(function (k) { return selected[k]; }).length;
     document.getElementById('kpi-total').textContent = all.length;
@@ -372,10 +363,10 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
       return; 
     }
     setMsg('');
-    var html = '<h3 style="margin-top:0; font-size:16px;">Vista Previa del Certificado</h3>';
+    var html = '<h3 style="margin-top:0; font-size:14px;">Vista Previa del Certificado</h3>';
     groupByRazon(rows).forEach(function (g) {
-      html += '<h4 style="margin:12px 0 6px; font-size:14px; color: #1b4e85;">' + htmlEsc(g.razon || '(Sin razón social)') + ' <span style="font-size:12px; font-weight:normal; color:#64748b;">– ' + g.rows.length + ' activo(s)</span></h4>' +
-        '<table class="cgps-table" style="margin-bottom:12px;"><thead><tr><th>Nº</th><th>Placa</th><th>VIN</th><th>ACTIVO DESDE</th></tr></thead><tbody>';
+      html += '<h4 style="margin:8px 0 4px; font-size:13px; color: #1b4e85;">' + htmlEsc(g.razon || '(Sin razón social)') + ' <span style="font-size:11px; font-weight:normal; color:#64748b;">– ' + g.rows.length + ' activo(s)</span></h4>' +
+        '<table class="cgps-table" style="margin-bottom:8px;"><thead><tr><th>Nº</th><th>Placa</th><th>VIN</th><th>ACTIVO DESDE</th></tr></thead><tbody>';
       g.rows.forEach(function (r, i) { html += '<tr><td>' + (i + 1) + '</td><td>' + htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td></tr>'; });
       html += '</tbody></table>';
     });
