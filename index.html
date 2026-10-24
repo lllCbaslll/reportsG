@@ -3,214 +3,11 @@
 <head>
 <meta charset="utf-8">
 <title>Certificado GPS</title>
-<style>
-  :root {
-    --dive-blue: #1b4e85;
-    --dive-blue-btn: #4277a8;
-    --bg-gray: #f4f7fc;
-    --card-bg: #ffffff;
-    --border-color: #cbd5e1;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --green-badge-bg: #dcfce7;
-    --green-badge-text: #166534;
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-gray) !important;
-    color: var(--text-main);
-  }
-
-  .cgps-wrapper {
-    max-width: 1300px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  /* 1. Banner azul principal */
-  .cgps-hero {
-    background-color: var(--dive-blue) !important;
-    color: #ffffff !important;
-    padding: 24px 30px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
-  }
-
-  .cgps-hero-tag {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    opacity: 0.85;
-    margin-bottom: 6px;
-  }
-
-  .cgps-hero h1 {
-    margin: 0 0 8px 0;
-    font-size: 26px;
-    font-weight: 700;
-  }
-
-  .cgps-hero p {
-    margin: 0 0 16px 0;
-    font-size: 13px;
-    opacity: 0.9;
-    line-height: 1.4;
-  }
-
-  .cgps-badges {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-  }
-
-  .cgps-badge {
-    background-color: var(--green-badge-bg);
-    color: var(--green-badge-text);
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-weight: 600;
-  }
-
-  /* 2. Botones de acción */
-  .cgps-btn {
-    padding: 9px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s ease;
-  }
-
-  .cgps-btn-white {
-    background-color: #ffffff !important;
-    color: var(--dive-blue) !important;
-  }
-
-  .cgps-btn-secondary {
-    background-color: var(--dive-blue-btn) !important;
-    color: #ffffff !important;
-  }
-
-  .cgps-btn-outline {
-    background-color: #ffffff;
-    color: var(--dive-blue);
-    border: 1px solid var(--dive-blue);
-  }
-
-  /* 3. Tarjetas KPI */
-  .cgps-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-  }
-
-  .cgps-card {
-    background: var(--card-bg);
-    border-radius: 10px;
-    padding: 18px 20px;
-    border: 1px solid var(--border-color);
-  }
-
-  .cgps-kpi-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-  }
-
-  .cgps-kpi-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text-main);
-  }
-
-  /* 4. Inputs y Controles */
-  .cgps-controls-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-  }
-
-  .cgps-input, .cgps-select {
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 13px;
-    outline: none;
-    background-color: #ffffff;
-  }
-
-  /* 5. Tabla bordes suaves */
-  .cgps-table-container {
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-  }
-
-  .cgps-table-scroll {
-    max-height: 420px;
-    overflow-y: auto;
-  }
-
-  .cgps-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  .cgps-table th {
-    background-color: #f8fafc;
-    color: var(--text-muted);
-    font-weight: 600;
-    text-align: left;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 2;
-  }
-
-  .cgps-table td {
-    padding: 10px 16px;
-    border-bottom: 1px solid #e2e8f0;
-    color: var(--text-main);
-  }
-
-  .cgps-table tbody tr:hover {
-    background-color: #f1f5f9;
-  }
-
-  .cgps-msg {
-    min-height: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #15803d;
-  }
-
-  .cgps-msg.cgps-err { color: #b91c1c; }
-</style>
 </head>
 <body>
 
 <div class="cgps-wrapper" id="cgps-root">
-  <!-- Banner Superior estilo Divemotor -->
+  <!-- Banner Superior Divemotor -->
   <div class="cgps-hero">
     <div>
       <div class="cgps-hero-tag">NAVISAF · CONTROL DE DOCUMENTOS</div>
@@ -227,7 +24,7 @@
     </div>
   </div>
 
-  <!-- Tarjetas KPI -->
+  <!-- Métricas Rápidas / KPIs -->
   <div class="cgps-kpi-grid">
     <div class="cgps-card">
       <div class="cgps-kpi-title">Unidades Cargadas</div>
@@ -254,7 +51,7 @@
       </label>
     </div>
 
-    <div class="cgps-controls-row" style="margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+    <div class="cgps-controls-row" style="margin-top: 14px; border-top: 1px solid #cbd5e1; padding-top: 14px;">
       <label style="font-size: 13px; font-weight: 600;">Razón social desde:
         <select id="cgps-mode" class="cgps-select" style="margin-left: 6px;">
           <option value="auto">Automático (propiedad personalizada → comentario → grupo)</option>
@@ -284,7 +81,7 @@
           </tr>
         </thead>
         <tbody id="cgps-listbody">
-          <tr><td colspan="5" style="text-align:center; padding: 24px; color: var(--text-muted);">Cargando activos…</td></tr>
+          <tr><td colspan="5" style="text-align:center; padding: 24px; color: #64748b;">Cargando activos…</td></tr>
         </tbody>
       </table>
     </div>
@@ -295,6 +92,57 @@
 </div>
 
 <script>
+// Inyección forzada de CSS
+(function injectStyles() {
+  var css = `
+    :root {
+      --dive-blue: #1b4e85;
+      --dive-blue-btn: #4277a8;
+      --bg-gray: #f4f7fc;
+      --card-bg: #ffffff;
+      --border-color: #cbd5e1;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+    }
+    body {
+      margin: 0 !important;
+      padding: 20px !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+      background-color: #f4f7fc !important;
+      color: #1e293b !important;
+    }
+    .cgps-wrapper { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+    .cgps-hero { background-color: #1b4e85 !important; color: #ffffff !important; padding: 24px 30px; border-radius: 12px; display: flex; justify-content: space-between; align-items: flex-start; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08); }
+    .cgps-hero-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; opacity: 0.85; margin-bottom: 6px; }
+    .cgps-hero h1 { margin: 0 0 8px 0; font-size: 26px; font-weight: 700; color: #ffffff !important; }
+    .cgps-hero p { margin: 0 0 16px 0; font-size: 13px; opacity: 0.9; line-height: 1.4; color: #ffffff !important; }
+    .cgps-badges { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+    .cgps-badge { background-color: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+    .cgps-btn { padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .cgps-btn-white { background-color: #ffffff !important; color: #1b4e85 !important; }
+    .cgps-btn-secondary { background-color: #4277a8 !important; color: #ffffff !important; }
+    .cgps-btn-outline { background-color: #ffffff; color: #1b4e85; border: 1px solid #1b4e85; }
+    .cgps-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .cgps-card { background: #ffffff !important; border-radius: 10px; padding: 18px 20px; border: 1px solid #cbd5e1; }
+    .cgps-kpi-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .cgps-kpi-value { font-size: 28px; font-weight: 700; color: #1e293b; }
+    .cgps-controls-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .cgps-input, .cgps-select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; background-color: #ffffff; }
+    .cgps-table-container { background-color: #ffffff; border-radius: 10px; border: 1px solid #cbd5e1; overflow: hidden; }
+    .cgps-table-scroll { max-height: 420px; overflow-y: auto; }
+    .cgps-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .cgps-table th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 1px solid #cbd5e1; position: sticky; top: 0; z-index: 2; }
+    .cgps-table td { padding: 10px 16px; border-bottom: 1px solid #e2e8f0; color: #1e293b; }
+    .cgps-table tbody tr:hover { background-color: #f1f5f9; }
+    .cgps-msg { min-height: 20px; font-size: 13px; font-weight: 600; color: #15803d; }
+    .cgps-msg.cgps-err { color: #b91c1c; }
+  `;
+  var styleElem = document.createElement('style');
+  styleElem.type = 'text/css';
+  styleElem.appendChild(document.createTextNode(css));
+  document.head.appendChild(styleElem);
+})();
+
 window.geotab = window.geotab || {};
 window.geotab.addin = window.geotab.addin || {};
 
@@ -504,7 +352,7 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
       html += '<tr><td style="text-align:center;"><input type="checkbox" data-id="' + htmlEsc(r.id) + '"' + (selected[r.id] ? ' checked' : '') + '></td><td>' +
         htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td><td>' + htmlEsc(r.razon) + '</td></tr>';
     });
-    $('listbody').innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding: 20px; color: var(--text-muted);">Sin resultados</td></tr>';
+    $('listbody').innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">Sin resultados</td></tr>';
     
     var selCount = Object.keys(selected).filter(function (k) { return selected[k]; }).length;
     document.getElementById('kpi-total').textContent = all.length;
@@ -526,7 +374,7 @@ window.geotab.addin["Certificado GPS"] = function (api, state, callback) {
     setMsg('');
     var html = '<h3 style="margin-top:0; font-size:16px;">Vista Previa del Certificado</h3>';
     groupByRazon(rows).forEach(function (g) {
-      html += '<h4 style="margin:12px 0 6px; font-size:14px; color: var(--dive-blue);">' + htmlEsc(g.razon || '(Sin razón social)') + ' <span style="font-size:12px; font-weight:normal; color:var(--text-muted);">– ' + g.rows.length + ' activo(s)</span></h4>' +
+      html += '<h4 style="margin:12px 0 6px; font-size:14px; color: #1b4e85;">' + htmlEsc(g.razon || '(Sin razón social)') + ' <span style="font-size:12px; font-weight:normal; color:#64748b;">– ' + g.rows.length + ' activo(s)</span></h4>' +
         '<table class="cgps-table" style="margin-bottom:12px;"><thead><tr><th>Nº</th><th>Placa</th><th>VIN</th><th>ACTIVO DESDE</th></tr></thead><tbody>';
       g.rows.forEach(function (r, i) { html += '<tr><td>' + (i + 1) + '</td><td>' + htmlEsc(r.placa) + '</td><td>' + htmlEsc(r.vin) + '</td><td>' + htmlEsc(r.desde) + '</td></tr>'; });
       html += '</tbody></table>';
